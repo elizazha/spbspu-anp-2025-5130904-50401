@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cctype>
+#include <cstdlib>
+#include <iomanip>
 
 namespace zhuravleva{
   void removeLatinLetters(const char* input, char* result)
@@ -42,6 +44,72 @@ namespace zhuravleva{
     }
     result[j] = '\0';
   }
+
+  size_t extend(char** buffer, size_t current_size, size_t new_size)
+  {
+    char* new_buffer = static_cast<char*>(malloc(sizeof(char) * new_size));
+    if (new_buffer == nullptr)
+    {
+      return 1;
+    }
+
+    for (size_t i = 0; i < current_size; ++i)
+    {
+      new_buffer[i] = (*buffer)[i];
+    }
+
+    free(*buffer);
+    *buffer = new_buffer;
+    return 0;
+  }
+
+  size_t getline(std::istream& input, size_t& length, char** str)
+  {
+    size_t addSize = 64;
+    size_t capacity = addSize;
+    length = 0;
+    *str = static_cast<char*>(std::malloc(sizeof(char) * capacity));
+
+    if (*str == nullptr)
+    {
+      return 1;
+    }
+    bool is_skipws = input.flags() & std::ios_base::skipws;
+    if (is_skipws)
+    {
+      input >> std::noskipws;
+    }
+
+    char ch;
+    while (input >> ch && ch != '\n')
+    {
+      if (input.bad())
+      {
+        return 2;
+      }
+      if (length + 1 >= capacity)
+      {
+        size_t new_capacity = capacity + addSize;
+        size_t result = extend(str, capacity, new_capacity);
+        if (result != 0)
+        {
+          return result;
+        }
+        capacity = new_capacity;
+      }
+      (*str)[length] = ch;
+      length++;
+    }
+
+    (*str)[length] = '\0';
+
+    if (is_skipws)
+    {
+      input >> std::skipws;
+    }
+    return 0;
+  }
+
 }
 
 int main()
