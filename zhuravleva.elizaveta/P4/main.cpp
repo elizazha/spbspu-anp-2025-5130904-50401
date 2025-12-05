@@ -110,9 +110,92 @@ namespace zhuravleva{
     return 0;
   }
 
+  size_t stringLength(const char* str)
+  {
+    size_t len = 0;
+    while (str[len] != '\0')
+    {
+      len++;
+    }
+    return len;
+  }
 }
+
 
 int main()
 {
+  size_t lenOfFirst = 0;
+  char* firstString = nullptr;
+  size_t num1 = zhuravleva::getline(std::cin, lenOfFirst, &firstString);
+  if (num1 != 0)
+  {
+    std::cerr << "Error: Reading input failed\n";
+    if (firstString != nullptr)
+    {
+      std::free(firstString);
+    }
+    return 1;
+  }
+  if (zhuravleva::stringLength(firstString) == 0)
+  {
+    std::cerr << "Error: Empty string\n";
+    std::free(firstString);
+    return 1;
+  }
+
+  size_t lenOfSecond = 0;
+  char* secondString = nullptr;
+  size_t num2 = zhuravleva::getline(std::cin, lenOfSecond, &secondString);
+  if (num2 != 0)
+  {
+    std::free(firstString);
+    std::cerr << "Error: Reading input failed\n";
+    if (secondString != nullptr)
+    {
+      std::free(secondString);
+    }
+    return 1;
+  }
+  if (zhuravleva::stringLength(secondString) == 0)
+  {
+    std::cerr << "Error: Empty string\n";
+    std::free(firstString);
+    std::free(secondString);
+    return 1;
+  }
+
+  size_t max_len1 = zhuravleva::stringLength(firstString) + 1;
+  size_t max_len2 = zhuravleva::stringLength(firstString) + 1;
+
+  char* result1 = static_cast<char*>(std::malloc(sizeof(char) * max_len1));
+  char* result2 = static_cast<char*>(std::malloc(sizeof(char) * max_len2));
+
+  if (result1 == nullptr || result2 == nullptr)
+  {
+    std::cerr << "Error: Memory allocation failed for results\n";
+    std::free(firstString);
+    std::free(secondString);
+    if (result1 != nullptr)
+    {
+      std::free(result1);
+    }
+    if (result2 != nullptr)
+    {
+      std::free(result2);
+    }
+    return 1;
+  }
+
+  zhuravleva::removeLatinLetters(firstString, result1);
+  zhuravleva::excludeCommonSymbols(firstString, secondString, result2);
+
+  std::cout << "Result №3 (remove Latin letters): " << result1 << "\n";
+  std::cout << "Result №15 (exclude chars from second string): " << result2 << "\n";
+
+  std::free(firstString);
+  std::free(secondString);
+  std::free(result1);
+  std::free(result2);
+
   return 0;
 }
