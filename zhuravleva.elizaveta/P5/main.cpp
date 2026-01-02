@@ -197,7 +197,147 @@ void zhuravleva::Rubber::scale(double coefficient)
 }
 
 
+void scaleByPoint(zhuravleva::Shape** shapes, size_t count,
+  const zhuravleva::point_t& point, double coef)
+{
+  if (coef <= 0)
+  {
+    throw std::invalid_argument("Scale coefficient must be positive");
+  }
+
+  for (size_t i = 0; i < count; ++i)
+  {
+    shapes[i]->move(-point.x, -point.y);
+
+    shapes[i]->scale(coef);
+
+    shapes[i]->move(point.x, point.y);
+  }
+}
+
+zhuravleva::rectangle_t getAllFrame(zhuravleva::Shape** shapes, size_t count)
+{
+  if (count == 0)
+  {
+    return { 0, 0, {0, 0} };
+  }
+  zhuravleva::rectangle_t first = shapes[0]->getFrameRect();
+  double minX = first.pos.x - first.width / 2;
+  double minY = first.pos.y - first.height / 2;
+  double maxX = first.pos.x + first.width / 2;
+  double maxY = first.pos.y + first.height / 2;
+  for (size_t i = 1; i < count; ++i)
+  {
+    zhuravleva::rectangle_t curFr = shapes[i]->getFrameRect();
+    double curMinX = curFr.pos.x - curFr.width / 2;
+    double curMinY = curFr.pos.y - curFr.height / 2;
+    double curMaxX = curFr.pos.x + curFr.width / 2;
+    double curMaxY = curFr.pos.y + curFr.height / 2;
+    if (curMinX < minX)
+    {
+      minX = curMinX;
+    }
+    if (curMinY < minY)
+    {
+      minY = curMinY;
+    }
+    if (curMaxX > maxX)
+    {
+      maxX = curMaxX;
+    }
+    if (curMaxY > maxY)
+    {
+      maxY = curMaxY;
+    }
+  }
+  zhuravleva::rectangle_t resultFrame;
+  resultFrame.width = maxX - minX;
+  resultFrame.height = maxY - minY;
+  resultFrame.pos.x = minX + resultFrame.width / 2;
+  resultFrame.pos.y = minY + resultFrame.height / 2;
+  return resultFrame;
+}
+
+double allArea(zhuravleva::Shape** shapes, size_t count)
+{
+  if (count == 0)
+  {
+    return 0.0;
+  }
+
+  double totalArea = 0.0;
+  for (size_t i = 0; i < count; ++i)
+  {
+    totalArea += shapes[i]->getArea();
+  }
+  return totalArea;
+}
+
+void output(zhuravleva::Shape** figures, size_t size)
+{
+  for (size_t i = 0; i < size; ++i)
+  {
+    zhuravleva::rectangle_t frame = figures[i]->getFrameRect();
+    std::cout << "Figure " << i << ":\n";
+    std::cout << "\tArea: " << figures[i]->getArea() << "\n";
+    std::cout << "\tFrame rectangle:\n";
+    std::cout << "\t\tWidth: " << frame.width << "\n";
+    std::cout << "\t\tHeight: " << frame.height << "\n";
+    std::cout << "\t\tCenter: x = " << frame.pos.x << " y = " << frame.pos.y << "\n";
+  }
+  std::cout << "SumArea: " << allArea(figures, size) << "\n";
+  zhuravleva::rectangle_t allFrame = getAllFrame(figures, size);
+  std::cout << "Generic frame:\n";
+  std::cout << "\tWidth: " << allFrame.width << "\n";
+  std::cout << "\tHeight: " << allFrame.height << "\n";
+  std::cout << "\tCenter: x = " << allFrame.pos.x << " y = " << allFrame.pos.y << "\n";
+}
+
 int main()
 {
-  
+  zhuravleva::Shape* figures[3] = { nullptr, nullptr, nullptr };
+  size_t size = 3;
+  double k = 0.0;
+  zhuravleva::point_t p = { 0.0, 0.0 };
+
+  std::cout << "x, y, scale: ";
+  std::cin >> p.x >> p.y >> k;
+  if (!std::cin || k <= 0.0)
+  {
+    std::cerr << "Bad input\n";
+    return 1;
+  }
+
+  try
+  {
+    figures[0] = new zhuravleva::Rectangle(4.0, 3.0, { 2.0, 2.0 });
+    figures[1] = new zhuravleva::Ellipse(4.0, 2.0, { 8.0, 8.0 });
+    figures[2] = new zhuravleva::Rubber(5.0, 2.0, { 15.0, 5.0 });
+
+    output(figures, size);
+    scaleByPoint(figures, size, p, k);
+    output(figures, size);
+
+    delete figures[0];
+    delete figures[1];
+    delete figures[2];
+
+    return 0;
+  }
+  catch (const std::bad_alloc& e)
+  {
+    std::cerr << e.what() << "\n";
+    delete figures[0];
+    delete figures[1];
+    delete figures[2];
+    return 2;
+  }
+  catch (const std::invalid_argument& e)
+  {
+    std::cerr << e.what() << "\n";
+    delete figures[0];
+    delete figures[1];
+    delete figures[2];
+    return 3;
+  }
 }
